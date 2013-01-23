@@ -15,12 +15,14 @@ module TunP {
     interface Init as SoftwareInit @exactlyonce();
     interface IPForward;
   }
+  uses {
+    interface IO;
+  }
 }
 
 implementation {
 
   int tun_file;
-  pthread_t receive_thread;
   uint8_t in_buf[2048];
   uint8_t out_buf[2048];
 
@@ -65,30 +67,18 @@ implementation {
     return system(cmd);
   }
 
-  void* receive (void* arg) {
-    int len;
-    uint8_t buf[2048];
 
-    struct ip6_hdr *iph;
-    void *payload;
 
-    printf("receive thread tun\n");
+  event void IO.receveReady () {
+    len = read(tun_file, buf, 2048);
+    printf("TunP: got packet\n");
 
-    while (1) {
-      len = read(tun_file, buf, 2048);
-      printf("TunP: got packet\n");
+    memcpy(in_buf, buf, len);
 
-      // need to skip over the packet info header from the tun device
-  //    memcpy(in_buf, buf+sizeof(struct tun_pi), len);
-      memcpy(in_buf, buf, len);
-
-      // set up pointers and signal to the next layer
-      iph = (struct ip6_hdr*) in_buf;
-      payload = (iph + 1);
-      signal IPForward.recv(iph, payload, NULL);
-    }
-
-    return NULL;
+    // set up pointers and signal to the next layer
+    iph = (struct ip6_hdr*) in_buf;
+    payload = (iph + 1);
+    signal IPForward.recv(iph, payload, NULL);
   }
 
   command error_t SoftwareInit.init() {
@@ -124,11 +114,8 @@ implementation {
  //   ssystem("ifconfig tun0 inet6 add fe80::fffe:12/64");
     printf("\n");
 
-    err = pthread_create(&receive_thread, NULL, &receive, NULL);
-    if (err) {
-      //error
-    }
-
+    // Register the file descriptor with the IO manager that will call select()
+    call IO.register(tun_file);
 
     return SUCCESS;
 
