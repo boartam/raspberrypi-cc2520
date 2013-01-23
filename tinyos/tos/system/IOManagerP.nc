@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define MAX_NUM_FD 10
 
 module IOManagerP {
   provides {
@@ -18,8 +19,6 @@ module IOManagerP {
 
 implementation {
 
-  #define MAX_NUM_FD 10
-
   typedef struct {
     uint8_t id;
     uint8_t fd;
@@ -31,19 +30,19 @@ implementation {
 
   fd_set rfds;
 
-  command error_t IO.register[uint8_t io_id] (int file_descriptor) {
+  command error_t IO.registerFD[uint8_t io_id] (int file_descriptor) {
     if (num_fd >= MAX_NUM_FD) {
       return FAIL;
     }
     if (num_fd == 0) {
-      FD_ZERO(&rdfs);
+      FD_ZERO(&rfds);
     }
 
     map[num_fd].id = io_id;
     map[num_fd].id = file_descriptor;
     num_fd++;
 
-    FD_SET(file_descriptor, rdfs);
+    FD_SET(file_descriptor, &rfds);
 
     if (file_descriptor >= nfds) {
       nfds = file_descriptor + 1;
@@ -52,15 +51,15 @@ implementation {
 
   command void BlockingIO.waitForIO () {
     int ret;
-    uint16_t timer_ms;
-    struct timeval;
+    uint16_t timer_micro;
+    struct timeval timeout;
 
     // setup the timeout as the time until the next timer fires
-    timer_ms = call TimerQuery.nextTimerTime();
-    timeval.tv_sec = 0;
-    timeval.tv_usec = ((long) timer_ms) * 1000;
+    timer_micro = call TimerQuery.nextTimerTime();
+    timeout.tv_sec = 0;
+    timeout.tv_usec = ((long) timer_micro);
 
-    ret = select(nfds, &rfds, NULL, NULL, timeval);
+    ret = select(nfds, &rfds, NULL, NULL, &timeout);
 
     if (ret < 0) {
       // error
@@ -71,7 +70,7 @@ implementation {
       // some file is ready
       int i;
       for (i=0; i<num_fd; i++) {
-        if (FD_ISSET(map[i].fd, &rdfs)) {
+        if (FD_ISSET(map[i].fd, &rfds)) {
           signal IO.receiveReady[map[i].id]();
         }
       }

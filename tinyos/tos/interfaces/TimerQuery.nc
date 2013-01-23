@@ -1,5 +1,5 @@
 
 interface TimerQuery {
-  // Get the number of milliseconds until the next timer should fire.
-  command uint16_t nextTimerTime ();
+  // Get the number of microseconds until the next timer should fire.
+  command uint32_t nextTimerTime ();
 }

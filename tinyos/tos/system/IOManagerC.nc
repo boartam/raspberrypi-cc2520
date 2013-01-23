@@ -10,10 +10,10 @@ configuration IOManagerC {
 
 implementation {
   components IOManagerP;
-  components TimerQueryC;
+  components HalAlarmC;
 
-  IOManagerP.TimerQuery -> TimerQueryC.TimerQuery;
+  IOManagerP.TimerQuery -> HalAlarmC.TimerQuery;
 
-  IO = IOManagerP[uint8_t io_id];
+  IO = IOManagerP.IO;
   BlockingIO = IOManagerP.BlockingIO;
 }

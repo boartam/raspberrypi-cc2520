@@ -9,6 +9,7 @@ configuration PlatformC {
     interface Init;
   }
 }
+
 implementation {
   components PlatformP;
   Init = PlatformP;

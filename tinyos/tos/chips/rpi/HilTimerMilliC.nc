@@ -17,18 +17,18 @@ configuration HilTimerMilliC
 }
 implementation
 {
-  components new AlarmMilli32P();
+  components new AlarmMilli32C();
   components new AlarmToTimerC(TMilli);
   components new VirtualizeTimerC(TMilli,uniqueCount(UQ_TIMER_MILLI));
   components new CounterToLocalTimeC(TMilli);
   components LocalTimeMilli32P;
 
-  Init = AlarmMilli32P;
+  Init = AlarmMilli32C;
   TimerMilli = VirtualizeTimerC;
   LocalTime = LocalTimeMilli32P;
 
   VirtualizeTimerC.TimerFrom -> AlarmToTimerC;
-  AlarmToTimerC.Alarm -> AlarmMilli32P;
+  AlarmToTimerC.Alarm -> AlarmMilli32C;
 //  CounterToLocalTimeC.Counter -> CounterMilli32C;
 
 /*
