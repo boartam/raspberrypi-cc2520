@@ -5,15 +5,13 @@ configuration HalAlarmC {
     interface TimerQuery;
     interface Init;
   }
-  uses {
-    interface TimerFired;
-  }
 }
 
 implementation {
   components HalAlarmP;
+  components IOManagerC;
 
-  HalAlarmP.TimerFired = TimerFired;
+  HalAlarmP.TimerFired -> IOManagerC.TimerFired;
 
   Alarm = HalAlarmP.Alarm;
   TimerQuery = HalAlarmP.TimerQuery;

@@ -77,5 +77,7 @@ implementation {
     }
   }
 
+  default event void IO.receiveReady[uint8_t io_id] () { }
+
 
 }

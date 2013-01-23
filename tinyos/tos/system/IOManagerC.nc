@@ -5,6 +5,7 @@ configuration IOManagerC {
   provides {
     interface IO[uint8_t io_id];
     interface BlockingIO;
+    interface TimerFired;
   }
 }
 
@@ -16,4 +17,5 @@ implementation {
 
   IO = IOManagerP.IO;
   BlockingIO = IOManagerP.BlockingIO;
+  TimerFired = IOManagerP.TimerFired;
 }
