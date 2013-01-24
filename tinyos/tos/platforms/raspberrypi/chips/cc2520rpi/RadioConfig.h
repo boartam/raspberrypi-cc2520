@@ -59,7 +59,6 @@
 #define LPL_WINDOW 320
 #endif
 
-
 /**
  * Make PACKET_LINK automaticaly enabled for Ieee154MessageC
  */
