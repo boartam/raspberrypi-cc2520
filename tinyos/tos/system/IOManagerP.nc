@@ -52,6 +52,7 @@ implementation {
     if (file_descriptor >= nfds) {
       nfds = file_descriptor + 1;
     }
+    return SUCCESS;
   }
 
   command void BlockingIO.waitForIO () {
@@ -83,10 +84,10 @@ implementation {
       signal TimerFired.fired();
     } else {
       // some file is ready
-      int i;
-      for (i=0; i<num_fd; i++) {
-        if (FD_ISSET(map[i].fd, &rfds)) {
-          signal IO.receiveReady[map[i].id]();
+      int j;
+      for (j=0; j<num_fd; j++) {
+        if (FD_ISSET(map[j].fd, &rfds)) {
+          signal IO.receiveReady[map[j].id]();
         }
       }
     }

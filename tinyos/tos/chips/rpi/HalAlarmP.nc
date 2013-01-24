@@ -50,11 +50,8 @@ implementation {
   }
 
   async command void Alarm.startAt[uint8_t alarmid] (uint32_t t0, uint32_t dt) {
-
-    struct timespec time_now;
     uint32_t now;
     uint32_t elapsed;
-    int ret;
 
     atomic {
 
@@ -80,7 +77,7 @@ implementation {
   }
 
   async command void Alarm.stop[uint8_t alarmid] () {
-    timers[alarmid] = 0;
+    atomic timers[alarmid] = 0;
   }
 
   async command bool Alarm.isRunning[uint8_t alarmid] () {
@@ -93,7 +90,9 @@ implementation {
   }
 
   async command uint32_t Alarm.getAlarm[uint8_t alarmid] () {
-    return last_alarm;
+    uint32_t la;
+    atomic la = last_alarm;
+    return la;
   }
 
   command uint32_t TimerQuery.nextTimerTime () {
@@ -101,7 +100,6 @@ implementation {
     uint32_t closest = UINT32_MAX;
     uint8_t closest_id = 0;
 
-    uint32_t alarm_time;
     int i;
 
     for (i=0; i<MAX_ALARMS; i++) {

@@ -53,21 +53,6 @@ implementation {
 
     printf("Receiving a test message...\n");
     ret = read(cc2520_pipe, &len, sizeof(ssize_t));
-    if (ret < 0) {
-      perror("SHIT0");
-      return;
-    }
-    if (ret != sizeof(ssize_t)) {
-      printf("Fuck streams, they're hard.\n");
-    }
-    ret = read(cc2520_pipe, rx_msg_ptr, len);
-    if (ret < 0) {
-      perror("SHIT2");
-      return;
-    }
-    if (ret != len) {
-      printf("Well fuck, this is the problem then. %i %i\n", ret, len);
-    }
 
     if (ret > 0) {
       print_message((uint8_t*) rx_msg_ptr, ret);
@@ -80,6 +65,8 @@ implementation {
       // Signal the rest of the stack on the main thread
       rx_msg_ptr = signal BareReceive.receive(rx_msg_ptr);
 
+    } else {
+      printf("CC2520RpiReceiveP: read from pipe failed.\n");
     }
   }
 
@@ -89,7 +76,7 @@ implementation {
     int cc2520_file;
     int ret;
 
-    rx_msg_ptr = &(rx_msg_buf);
+    rx_msg_ptr = &rx_msg_buf;
 
     cc2520_file = open("/dev/radio", O_RDWR);
     if (cc2520_file < 0) {

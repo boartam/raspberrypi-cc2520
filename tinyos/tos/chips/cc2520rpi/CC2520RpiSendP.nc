@@ -31,7 +31,6 @@ implementation {
   void* send (void* arg) {
     int ret;
     uint8_t *buf;
-    ieee154_simple_header_t* ieeehdr;
 
     printf("CC2520RpiSendP: send_thread starting.\n");
 
