@@ -3,6 +3,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <errno.h>
+#include <sys/types.h>
 
 #define MAX_PACKET_LEN 128
 
@@ -30,7 +32,7 @@ implementation {
 
   int read_pipe[2];
 
-  void print_message (uint8_t *buf, uint8_t len) {
+  void print_message (uint8_t* buf, uint8_t len) {
     char pbuf[2048];
     char *buf_ptr = NULL;
     int i;
@@ -45,13 +47,30 @@ implementation {
   }
 
   event void IO.receiveReady () {
+    int ret;
     cc2520_metadata_t* meta;
+    ssize_t len;
 
     printf("Receiving a test message...\n");
-    ret = read(cc2520_pipe, rx_msg_ptr, MAX_PACKET_LEN);
+    ret = read(cc2520_pipe, &len, sizeof(ssize_t));
+    if (ret < 0) {
+      perror("SHIT0");
+      return;
+    }
+    if (ret != sizeof(ssize_t)) {
+      printf("Fuck streams, they're hard.\n");
+    }
+    ret = read(cc2520_pipe, rx_msg_ptr, len);
+    if (ret < 0) {
+      perror("SHIT2");
+      return;
+    }
+    if (ret != len) {
+      printf("Well fuck, this is the problem then. %i %i\n", ret, len);
+    }
 
     if (ret > 0) {
-      print_message(buf, ret);
+      print_message((uint8_t*) rx_msg_ptr, ret);
 
       // Save the meta information about the packet
       meta = (cc2520_metadata_t*) (uint8_t*) rx_msg_ptr + ret;
@@ -67,8 +86,10 @@ implementation {
   command error_t SoftwareInit.init () {
     // We pass a buffer back and forth between
     // the upper layers.
-    rx_msg_ptr = &rx_msg_buf;
     int cc2520_file;
+    int ret;
+
+    rx_msg_ptr = &(rx_msg_buf);
 
     cc2520_file = open("/dev/radio", O_RDWR);
     if (cc2520_file < 0) {
@@ -87,16 +108,19 @@ implementation {
     //  and puts the data in the pipe.
     if (!fork()) {
       // CHILD
+      char pkt_buf[MAX_PACKET_LEN];
       close(read_pipe[0]);
 
-      char pkt_buf[MAX_PACKET_LEN];
       while(1) {
         ssize_t len;
         len = read(cc2520_file, pkt_buf, MAX_PACKET_LEN);
+        printf("got the d\n");
         if (len <= 0) {
           // Something has died
+          printf("CC2520RpiReceiveP: Pipe died.\n");
           close(read_pipe[1]);
         }
+        write(read_pipe[1], &len, sizeof(ssize_t));
         write(read_pipe[1], pkt_buf, len);
       }
     }
@@ -108,7 +132,9 @@ implementation {
     cc2520_pipe = read_pipe[0];
 
     // Add the cc2520 pipe end to the select call
-    call IO.register(cc2520_pipe);
+    call IO.registerFD(cc2520_pipe);
+
+    printf("CC2520RpiReceiveP: registered receiver.\n");
 
     return SUCCESS;
   }
