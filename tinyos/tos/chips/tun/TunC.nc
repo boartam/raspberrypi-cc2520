@@ -8,7 +8,7 @@ configuration TunC {
 implementation {
   components TunP;
   components MainC;
-  components new IOFileC;
+  components new IOFileC();
 
   TunP.IO -> IOFileC.IO;
 

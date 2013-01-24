@@ -67,9 +67,12 @@ implementation {
     return system(cmd);
   }
 
+  event void IO.receiveReady () {
+    struct ip6_hdr* iph;
+    int len;
+    uint8_t buf[2048];
+    void *payload;
 
-
-  event void IO.receveReady () {
     len = read(tun_file, buf, 2048);
     printf("TunP: got packet\n");
 
@@ -115,7 +118,7 @@ implementation {
     printf("\n");
 
     // Register the file descriptor with the IO manager that will call select()
-    call IO.register(tun_file);
+    call IO.registerFD(tun_file);
 
     return SUCCESS;
 
