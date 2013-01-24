@@ -131,5 +131,7 @@ implementation {
     signal Alarm.fired[active_alarm_id]();
   }
 
+  default async event void Alarm.fired[uint8_t alarmid] () { }
+
 
 }
