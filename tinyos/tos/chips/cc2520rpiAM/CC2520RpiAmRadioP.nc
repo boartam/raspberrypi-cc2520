@@ -20,7 +20,7 @@ module CC2520RpiAmRadioP {
   provides {
  //   interface CC2520DriverConfig;
  //   interface SoftwareAckConfig;
- //   interface UniqueConfig;
+    interface UniqueConfig;
  //   interface CsmaConfig;
  //   interface TrafficMonitorConfig;
  //   interface RandomCollisionConfig;
@@ -193,7 +193,7 @@ implementation {
 //    signal TrafficMonitorConfig.channelError();
 #endif
   }
-
+*/
 // ----------------- UniqueConfig -----------------
 
   async command uint8_t UniqueConfig.getSequenceNumber(message_t* msg)
@@ -217,7 +217,7 @@ implementation {
 //    signal TrafficMonitorConfig.channelError();
 #endif
   }
-*/
+
 // ----------------- ActiveMessageConfig -----------------
 
   command am_addr_t ActiveMessageConfig.destination(message_t* msg)

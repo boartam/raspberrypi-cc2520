@@ -138,6 +138,8 @@ implementation
 
   AmRadioP.PacketMetadata -> RadioP.PacketMetadata;
 
+  components LocalIeeeEui64C;
+  RadioP.LocalIeeeEui64 -> LocalIeeeEui64C.LocalIeeeEui64;
 
 //#ifdef RADIO_DEBUG
 //  components AssertC;
@@ -214,9 +216,9 @@ implementation
 
   components new TinyosNetworkLayerC();
 
- // TinyosNetworkLayerC.SubSend -> UniqueLayerC;
+  TinyosNetworkLayerC.SubSend -> UniqueLayerC;
  // TinyosNetworkLayerC.SubSend -> CC2520RpiSendC.BareSend;
-  TinyosNetworkLayerC.SubSend -> PacketLinkLayerC.Send;
+ // TinyosNetworkLayerC.SubSend -> PacketLinkLayerC.Send;
   TinyosNetworkLayerC.SubReceive -> PacketLinkLayerC;
  // TinyosNetworkLayerC.SubReceive -> CC2520RpiReceiveC;
   TinyosNetworkLayerC.SubPacket -> Ieee154PacketLayerC.RadioPacket;
@@ -226,13 +228,13 @@ implementation
   components new Ieee154PacketLayerC();
   Ieee154PacketLayerC.SubPacket -> PacketLinkLayerC;
  // Ieee154PacketLayerC.SubPacket -> CC2520RpiPacketC.RadioPacket;
-/*
+
 // -------- UniqueLayer Send part (wired twice)
 
   components new UniqueLayerC();
-  UniqueLayerC.Config -> RadioP;
+  UniqueLayerC.Config -> AmRadioP;
   UniqueLayerC.SubSend -> PacketLinkLayerC;
-*/
+
 // -------- Packet Link
 
   components new PacketLinkLayerC();
