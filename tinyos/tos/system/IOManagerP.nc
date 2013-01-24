@@ -6,11 +6,14 @@
 
 #define MAX_NUM_FD 10
 
+#define DEFUALT_WAIT_MICRO 10000
+
 module IOManagerP {
   provides {
     interface IO[uint8_t io_id];
     interface BlockingIO;
     interface TimerFired;
+    interface Init;
   }
   uses {
     interface TimerQuery;
@@ -30,19 +33,21 @@ implementation {
 
   fd_set rfds;
 
+  command error_t Init.init () {
+    FD_ZERO(&rfds);
+    return SUCCESS;
+  }
+
   command error_t IO.registerFD[uint8_t io_id] (int file_descriptor) {
     if (num_fd >= MAX_NUM_FD) {
       return FAIL;
     }
-    if (num_fd == 0) {
-      FD_ZERO(&rfds);
-    }
 
     map[num_fd].id = io_id;
-    map[num_fd].id = file_descriptor;
+    map[num_fd].fd = file_descriptor;
     num_fd++;
 
-    FD_SET(file_descriptor, &rfds);
+ //   FD_SET(file_descriptor, &rfds);
 
     if (file_descriptor >= nfds) {
       nfds = file_descriptor + 1;
@@ -51,13 +56,23 @@ implementation {
 
   command void BlockingIO.waitForIO () {
     int ret;
-    uint16_t timer_micro;
+    uint32_t timer_micro;
     struct timeval timeout;
+    int i;
 
     // setup the timeout as the time until the next timer fires
     timer_micro = call TimerQuery.nextTimerTime();
-    timeout.tv_sec = 0;
-    timeout.tv_usec = ((long) timer_micro);
+    if (timer_micro == 0) {
+      timer_micro = DEFUALT_WAIT_MICRO;
+    }
+
+    timeout.tv_sec = timer_micro / 1000000;
+    timeout.tv_usec = timer_micro - (timeout.tv_sec*1000000);
+
+    FD_ZERO(&rfds);
+    for (i=0; i<num_fd; i++) {
+      FD_SET(map[i].fd, &rfds);
+    }
 
     ret = select(nfds, &rfds, NULL, NULL, &timeout);
 
