@@ -12,9 +12,6 @@ configuration IOManagerC {
 implementation {
   components IOManagerP;
   components HalAlarmC;
-  components MainC;
-
-  MainC -> IOManagerP.Init;
 
   IOManagerP.TimerQuery -> HalAlarmC.TimerQuery;
 

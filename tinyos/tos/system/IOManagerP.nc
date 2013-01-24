@@ -13,7 +13,6 @@ module IOManagerP {
     interface IO[uint8_t io_id];
     interface BlockingIO;
     interface TimerFired;
-    interface Init;
   }
   uses {
     interface TimerQuery;
@@ -33,11 +32,6 @@ implementation {
 
   fd_set rfds;
 
-  command error_t Init.init () {
-    FD_ZERO(&rfds);
-    return SUCCESS;
-  }
-
   command error_t IO.registerFD[uint8_t io_id] (int file_descriptor) {
     if (num_fd >= MAX_NUM_FD) {
       return FAIL;
@@ -46,8 +40,6 @@ implementation {
     map[num_fd].id = io_id;
     map[num_fd].fd = file_descriptor;
     num_fd++;
-
- //   FD_SET(file_descriptor, &rfds);
 
     if (file_descriptor >= nfds) {
       nfds = file_descriptor + 1;
@@ -79,9 +71,12 @@ implementation {
 
     if (ret < 0) {
       // error
+      printf("IOManagerP: select return error: %i\n", ret);
+
     } else if (ret == 0) {
       // timeout signal timer
       signal TimerFired.fired();
+
     } else {
       // some file is ready
       int j;
