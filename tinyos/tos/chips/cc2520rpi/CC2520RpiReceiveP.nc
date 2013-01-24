@@ -54,6 +54,13 @@ implementation {
     printf("Receiving a test message...\n");
     ret = read(cc2520_pipe, &len, sizeof(ssize_t));
 
+    if (ret != sizeof(ssize_t)) {
+      printf("CC2520RpiReceiveP: did not receive len from pipe\n");
+      return;
+    }
+
+    ret = read(cc2520_pipe, rx_msg_ptr, len);
+
     if (ret > 0) {
       print_message((uint8_t*) rx_msg_ptr, ret);
 
