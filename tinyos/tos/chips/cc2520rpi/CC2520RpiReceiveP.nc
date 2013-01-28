@@ -32,6 +32,7 @@ implementation {
 
   int read_pipe[2];
 
+#if CC2520RPI_DEBUG
   void print_message (uint8_t* buf, uint8_t len) {
     char pbuf[2048];
     char *buf_ptr = NULL;
@@ -45,24 +46,31 @@ implementation {
     *(buf_ptr) = '\0';
     printf("read %i %s\n", len, pbuf);
   }
+#endif
 
   event void IO.receiveReady () {
     int ret;
     cc2520_metadata_t* meta;
     ssize_t len;
 
+#if CC2520RPI_DEBUG
     printf("Receiving a test message...\n");
+#endif
     ret = read(cc2520_pipe, &len, sizeof(ssize_t));
 
     if (ret != sizeof(ssize_t)) {
+#if CC2520RPI_DEBUG
       printf("CC2520RpiReceiveP: did not receive len from pipe\n");
+#endif
       return;
     }
 
     ret = read(cc2520_pipe, rx_msg_ptr, len);
 
     if (ret > 0) {
+#if CC2520RPI_DEBUG
       print_message((uint8_t*) rx_msg_ptr, ret);
+#endif
 
       // Save the meta information about the packet
       meta = (cc2520_metadata_t*) (uint8_t*) rx_msg_ptr + ret;
@@ -73,7 +81,9 @@ implementation {
       rx_msg_ptr = signal BareReceive.receive(rx_msg_ptr);
 
     } else {
+#if CC2520RPI_DEBUG
       printf("CC2520RpiReceiveP: read from pipe failed.\n");
+#endif
     }
   }
 
@@ -87,14 +97,14 @@ implementation {
 
     cc2520_file = open("/dev/radio", O_RDWR);
     if (cc2520_file < 0) {
-      printf("CC2520RpiReceiveP: Could not open radio.\n");
+      fprintf(stderr, "CC2520RpiReceiveP: Could not open radio.\n");
       exit(1);
     }
 
     // create a pipe to buffer the input
     ret = pipe(read_pipe);
     if (ret == -1) {
-      printf("CC2520RpiReceiveP: Could not create pipe.\n");
+      fprintf(stderr, "CC2520RpiReceiveP: Could not create pipe.\n");
       exit(1);
     }
 
@@ -108,10 +118,9 @@ implementation {
       while(1) {
         ssize_t len;
         len = read(cc2520_file, pkt_buf, MAX_PACKET_LEN);
-        printf("got the d\n");
         if (len <= 0) {
           // Something has died
-          printf("CC2520RpiReceiveP: Pipe died.\n");
+          fprintf(stderr, "CC2520RpiReceiveP: Pipe died.\n");
           close(read_pipe[1]);
         }
         write(read_pipe[1], &len, sizeof(ssize_t));
@@ -128,7 +137,9 @@ implementation {
     // Add the cc2520 pipe end to the select call
     call IO.registerFD(cc2520_pipe);
 
+#if CC2520RPI_DEBUG
     printf("CC2520RpiReceiveP: registered receiver.\n");
+#endif
 
     return SUCCESS;
   }

@@ -22,6 +22,7 @@ implementation {
     signal BareSend.sendDone(msg_pointer, SUCCESS);
   }
 
+#if CC2520RPI_DEBUG
   void print_message (uint8_t* buf, uint8_t len) {
     char pbuf[2048];
     char *buf_ptr = NULL;
@@ -35,6 +36,7 @@ implementation {
     *(buf_ptr) = '\0';
     printf("write %i %s\n", len, pbuf);
   }
+#endif
 
   command error_t SoftwareInit.init() {
     int ret;
@@ -42,7 +44,7 @@ implementation {
     // Open the character device for the CC2520
     cc2520_file = open("/dev/radio", O_RDWR);
     if (cc2520_file < 0) {
-      printf("CC2520RpiSendP: Could not open radio\n");
+      fprintf(stderr, "CC2520RpiSendP: Could not open radio\n");
       exit(1);
     }
 
@@ -56,7 +58,9 @@ implementation {
     len = ((cc2520packet_header_t*) msg->header)->cc2520.length;
     msg_pointer = msg;
 
+#if CC2520RPI_DEBUG
     print_message((uint8_t*) msg, len-1);
+#endif
 
     // call the driver to send the packet
     ret = write(cc2520_file, (uint8_t*) msg, len-1);
@@ -67,7 +71,9 @@ implementation {
         call PacketMetadata.setWasAcked(msg, FALSE);
         break;
       case CC2520_TX_LENGTH:
+#if CC2520RPI_DEBUG
         printf("CC2520RpiSendP: INCORRECT LENGTH\n");
+#endif
         break;
       case CC2520_TX_SUCCESS:
         call PacketMetadata.setWasAcked(msg, TRUE);
@@ -76,7 +82,9 @@ implementation {
         if (ret == len - 1) {
           call PacketMetadata.setWasAcked(msg, TRUE);
         } else {
+#if CC2520RPI_DEBUG
           printf("CC2520RpiSendP: write() weird return code\n");
+#endif
         }
         break;
     }
