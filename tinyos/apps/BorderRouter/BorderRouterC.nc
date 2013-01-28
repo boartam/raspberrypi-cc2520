@@ -20,7 +20,6 @@ implementation {
 #endif
 
   components UDPShellC;
-  components Dhcp6RelayC;
 }
 
 

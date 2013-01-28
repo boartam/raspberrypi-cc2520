@@ -114,7 +114,9 @@ implementation {
     ssystem("ifconfig tun0 mtu 1280");
  //   ssystem("ip -6 addr add 2607:f018:800a:bcde:f012:3456:7890:1/112 dev tun0");
     ssystem("ip -6 route add 2607:f018:800a:bcde:f012:3456:7890::/112 dev tun0");
-    ssystem("ifconfig tun0 inet6 add fe80::212:6d52:5000:1/64");
+ //   ssystem("ifconfig tun0 inet6 add fe80::212:6d52:5000:1/64");
+    // Dummy link local addr to make the dhcp server work
+    ssystem("ifconfig tun0 inet6 add fe80::212:aaaa:bbbb:f/64");
     printf("\n");
 
     // Register the file descriptor with the IO manager that will call select()
