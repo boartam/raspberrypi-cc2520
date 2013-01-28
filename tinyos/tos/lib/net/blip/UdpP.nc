@@ -176,6 +176,8 @@ module UdpP {
     v[0].iov_next = iov;
     pkt.ip6_data = &v[0];
 
+    printf("SENDTOV: send len: %i\n", pkt.ip6_hdr.ip6_plen);
+
     udp.chksum = htons(msg_cksum(&pkt.ip6_hdr, v, IANA_UDP));
 
     rc = call IP.send(&pkt);

@@ -37,7 +37,7 @@ implementation {
   event void RadioControl.startDone(error_t err) {
     if (err == SUCCESS) {
       call UDPService.bind(2001);
-      call MilliTimer.startPeriodic(1000);
+      call MilliTimer.startPeriodic(10000);
 
     } else {
       call RadioControl.start();
@@ -47,11 +47,11 @@ implementation {
   event void MilliTimer.fired() {
     counter++;
     if (counter % 2) {
-   //   call Leds.led0Toggle();
-   //   call UDPService.sendto(&server, &counter, 2);
+      call Leds.led0Toggle();
+      call UDPService.sendto(&server, &counter, 2);
     } else {
-      call Leds.led1Toggle();
-      call UDPService.sendto(&root, &counter, 2);
+   //   call Leds.led1Toggle();
+   //   call UDPService.sendto(&root, &counter, 2);
     }
   }
 

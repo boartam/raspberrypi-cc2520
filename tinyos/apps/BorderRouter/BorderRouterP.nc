@@ -9,8 +9,9 @@ module BorderRouterP @safe() {
     interface Leds;
 
     interface SplitControl as RadioControl;
-
+#ifdef RPL_ROUTING
     interface RootControl;
+#endif
   }
 }
 implementation {
