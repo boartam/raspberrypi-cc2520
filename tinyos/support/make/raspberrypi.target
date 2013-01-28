@@ -22,6 +22,7 @@ PFLAGS += -I$(TOSROOTRPI)/tos/system
 PFLAGS += -DPRINTFUART_ENABLED=1
 
 PFLAGS += -DLINUX_PRINTF=1
+#PFLAGS += -DPC=1
 
 $(call TOSMake_include_platform,raspberrypi)
 
