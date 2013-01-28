@@ -1,0 +1,4 @@
+ifeq ($(TARGETS),raspberrypi)
+PFLAGS += -I$(TOSROOTRPI)/tos/lib/net/blip
+PFLAGS += -I$(TOSROOTRPI)/tos/lib/net/blip/dhcp
+endif
