@@ -3,13 +3,16 @@
 #define __DEBIAN_HARDWARE_H__
 
 #include <pthread.h>
+#include <signal.h>
 
 typedef uint8_t mcu_power_t;
 typedef bool __nesc_atomic_t;
 
 pthread_mutex_t atomic_lock;
 pthread_mutexattr_t mta;
+sigset_t global_sig;
 bool is_init = FALSE;
+bool interrupts_enabled = TRUE;
 
 __nesc_atomic_t __nesc_atomic_start(void);
 void __nesc_atomic_end(__nesc_atomic_t reenable_interrupts);
@@ -20,6 +23,8 @@ void __nesc_atomic_end(__nesc_atomic_t reenable_interrupts);
 // TODO: Refactor the checks for init out.
 void __nesc_disable_interrupt(void) @safe()
 {
+	if (!interrupts_enabled) return;
+
 	if (!is_init) {
 		pthread_mutexattr_init(&mta);
 		pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
@@ -27,10 +32,16 @@ void __nesc_disable_interrupt(void) @safe()
 	}
 
 	pthread_mutex_lock(&atomic_lock);
+	sigfillset(&all);
+	sigprocmask(SIG_BLOCK, &all, &global_sig);
+	interrupts_enabled = FALSE;
+
 }
 
 void __nesc_enable_interrupt(void) @safe()
 {
+	if (interrupts_enabled) return;
+
 	if (!is_init) {
 		pthread_mutexattr_init(&mta);
 		pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
@@ -38,6 +49,9 @@ void __nesc_enable_interrupt(void) @safe()
 	}
 
 	pthread_mutex_unlock(&atomic_lock);
+	sigprocmask(SIG_SETMASK, &global_sig, NULL);
+	interrupts_enabled = TRUE;
+
 }
 
 /* @spontaneous() functions should not be included when NESC_BUILD_BINARY
